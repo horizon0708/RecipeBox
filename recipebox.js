@@ -43,7 +43,7 @@ class IngredientUI extends React.Component {
     render() {
         const ingredient = this.props.ingredient
         return (
-            <div className="col-sm-8 offset-sm-2 ingredient">               
+            <div className="col-sm-8 offset-sm-2 ingredient">
                 {ingredient}
             </div>
         );
@@ -59,11 +59,11 @@ class DishUI extends React.Component {
         this.handleClick = this.handleClick.bind(this);
     }
 
-    handleClick(){
-        if(this.state.isClicked == false){
-            this.setState({isClicked: true});
-        } else{
-            this.setState({isClicked: false});
+    handleClick() {
+        if (this.state.isClicked == false) {
+            this.setState({ isClicked: true });
+        } else {
+            this.setState({ isClicked: false });
         }
     }
 
@@ -76,21 +76,18 @@ class DishUI extends React.Component {
 
     expand(props) {
         if (this.state.isClicked == true) {
-            // expand to reveal ingredients
-            console.log('asdf');
             return this.showIngredientsList(props.ingredients);
-        } 
+        }
     }
 
     render() {
         const dish = this.props.dish;
-
         return (
             <div className="row">
                 <div className="col-sm-8 offset-sm-2 dish" onClick={this.handleClick}>
-                    {dish.name}          
+                    {dish.name} <span> delete! </span>
                 </div>
-                {this.expand(dish)}    
+                {this.expand(dish)}
             </div>
         );
     }
@@ -99,21 +96,79 @@ class DishUI extends React.Component {
 class AddDishUI extends React.Component {
     render() {
         const contentEdit = this.props.contentEdit;
+        const newDish = this.props.newDish;
+        const addDish = this.props.addDish;
+        const click = this.props.click;
+        const keyPress = this.props.keyPress;
         return (
             <div className="row">
                 <div className="col-sm-8 offset-sm-2 dish">
-                    <span contenteditable="true" onChange={contentEdit}> add a new dish!</span>
+                    <ContentEditable
+                        html={newDish}
+                        disabled={false}
+                        onChange={contentEdit}
+                        onClick={click}
+                        onKeyPress={keyPress}
+                    />
                 </div>
+                <div onClick={addDish}>add!</div>
             </div>
         );
     }
 }
 
+
+
+const newDishMsg = 'Start typing here to add a new dish! '
+
 class Application extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            dishes: exampleDishes
+            dishes: exampleDishes,
+            newDish: newDishMsg
+        }
+        this.handleNewDishEdit = this.handleNewDishEdit.bind(this);
+        this.handleNewDishAdd = this.handleNewDishAdd.bind(this);
+        this.handleNewDishClick = this.handleNewDishClick.bind(this);
+        this.handleNewDishEnter = this.handleNewDishEnter.bind(this);
+    }
+
+    handleNewDishClick(e) {
+        if(this.state.newDish == newDishMsg)
+        this.setState({ newDish: "" });
+    }
+
+    handleNewDishEdit(e) {
+        if (this.state.newDish.length < 30) {
+            this.setState({ newDish: e.target.value })
+        }
+    }
+
+    handleNewDishAdd(e) {
+        const addition = this.state.dishes;
+        if (this.state.newDish.length !== 0) {
+            addition.push(new Dish(this.state.newDish, []));
+            this.setState({
+                dishes: addition,
+                newDish: newDishMsg
+            });
+        }
+    }
+
+    handleNewDishEnter(event) {
+        var x = event.which || event.charCode;
+        if (x == 13) {
+            event.preventDefault();
+            const addition = this.state.dishes;
+            if (this.state.newDish.length !== 0) {
+                addition.push(new Dish(this.state.newDish, []));
+                this.setState({
+                    dishes: addition,
+                    newDish: newDishMsg
+                });
+            }
+            this.setState({ newDish: "" });
         }
     }
 
@@ -140,11 +195,15 @@ class Application extends React.Component {
     }
 
     render() {
+        const dish = this.state.newDish
         return (
             <div className="row">
                 <div className="col-sm-6 offset-sm-3" id="body"> wf
                     {this.populateDishUI()}
-                    <AddDishUI />
+                    <AddDishUI contentEdit={this.handleNewDishEdit} newDish={dish}
+                        addDish={this.handleNewDishAdd}
+                        click={this.handleNewDishClick}
+                        keyPress={this.handleNewDishEnter} />
                 </div>
             </div>
         );
